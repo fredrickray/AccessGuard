@@ -1,0 +1,32 @@
+{
+  "resources": [
+    {
+      "name": "Admin Dashboard",
+      "prefix": "/api/admin",
+      "requiredRoles": ["admin"],
+      "description": "Administrative functions"
+    },
+    {
+      "name": "Banking Operations",
+      "prefix": "/api/banking",
+      "requiredRoles": ["hr", "banker"],
+      "description": "Core banking operations"
+    },
+    {
+      "name": "HR Systems",
+      "prefix": "/api/hr",
+      "requiredRoles": ["sales", "hr", "admin"],
+      "description": "Human resources management"
+    },
+    {
+      "name": "Reports",
+      "prefix": "/api/reports",
+      "requiredRoles": ["analyst", "manager", "admin"],
+      "description": "Analytics and reporting"
+    },
+    {
+      "prefix": "/api",
+      "requiredRoles": ["service"]
+    }
+  ]
+}

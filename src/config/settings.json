@@ -1,0 +1,15 @@
+{
+  "jwt": {
+    "secret": "demo-secret",
+    "issuer": "accessguard"
+  },
+  "risk": {
+    "allow": 0.3,
+    "mfa": 0.6,
+    "block": 0.8
+  },
+  "maxFailedAttempts": 5,
+  "sessionTimeout": 3600,
+  "trustedCountries": ["NG", "US", "GB"],
+  "suspiciousCountries": ["RU", "CN", "KP"]
+}

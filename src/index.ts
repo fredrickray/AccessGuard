@@ -1,0 +1,5 @@
+import Server from "./server";
+import config from "@config/dotenv.config";
+const app = new Server();
+
+app.start(config.serverPort);

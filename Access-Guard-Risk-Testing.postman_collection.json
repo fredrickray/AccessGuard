@@ -1,0 +1,449 @@
+{
+  "info": {
+    "_postman_id": "access-guard-risk-testing",
+    "name": "Access Guard - Risk Engine Testing",
+    "description": "Test collection for Access Guard zero-trust risk engine",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  pm.environment.set('token', response.token);",
+                  "  console.log('✅ Token saved to environment');",
+                  "} else {",
+                  "  console.log('❌ Login failed');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"ajebodev\",\"password\":\"password123\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Risk Testing",
+      "item": [
+        {
+          "name": "Low Risk (Allow - Score 0.0)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const posture = {",
+                  "  diskEncrypted: true,",
+                  "  antivirus: true,",
+                  "  isJailbroken: false",
+                  "};",
+                  "",
+                  "const context = {",
+                  "  impossibleTravel: false,",
+                  "  country: 'NG',",
+                  "  city: 'Lagos',",
+                  "  timezone: 'Africa/Lagos',",
+                  "  ipReputation: 95,",
+                  "  isVPN: false,",
+                  "  isTor: false,",
+                  "  accessTime: new Date().toISOString()",
+                  "};",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-device-posture',",
+                  "  value: JSON.stringify(posture)",
+                  "});",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-access-context',",
+                  "  value: JSON.stringify(context)",
+                  "});",
+                  "",
+                  "console.log('✅ Low Risk scenario loaded');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.test('Status should be 200', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Risk score should be ~0.0', () => {",
+                  "  pm.expect(response.riskScore).to.be.below(0.1);",
+                  "});",
+                  "",
+                  "pm.test('Decision should be allow', () => {",
+                  "  pm.expect(response.decision).to.equal('allow');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/banking/dashboard",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "banking",
+                "dashboard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Medium Risk (MFA - Score 0.45)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const posture = {",
+                  "  diskEncrypted: false,",
+                  "  antivirus: false,",
+                  "  isJailbroken: false",
+                  "};",
+                  "",
+                  "const context = {",
+                  "  impossibleTravel: false,",
+                  "  country: 'CN',",
+                  "  city: 'Beijing',",
+                  "  timezone: 'Asia/Shanghai',",
+                  "  ipReputation: 50,",
+                  "  isVPN: true,",
+                  "  isTor: false,",
+                  "  accessTime: new Date().toISOString()",
+                  "};",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-device-posture',",
+                  "  value: JSON.stringify(posture)",
+                  "});",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-access-context',",
+                  "  value: JSON.stringify(context)",
+                  "});",
+                  "",
+                  "console.log('⚠️ Medium Risk scenario loaded');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.test('Status should be 401', () => {",
+                  "  pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "",
+                  "pm.test('MFA should be required', () => {",
+                  "  pm.expect(response.details.mfaRequired).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test('Risk score should be ~0.45', () => {",
+                  "  const score = response.details.riskScore;",
+                  "  pm.expect(score).to.be.above(0.4).and.below(0.5);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/banking/dashboard",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "banking",
+                "dashboard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "High Risk (Block - Score 0.85)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const posture = {",
+                  "  diskEncrypted: false,",
+                  "  antivirus: false,",
+                  "  isJailbroken: true",
+                  "};",
+                  "",
+                  "const context = {",
+                  "  impossibleTravel: true,",
+                  "  country: 'KP',",
+                  "  city: 'Pyongyang',",
+                  "  timezone: 'Asia/Pyongyang',",
+                  "  ipReputation: 20,",
+                  "  isVPN: true,",
+                  "  isTor: true,",
+                  "  accessTime: new Date().toISOString()",
+                  "};",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-device-posture',",
+                  "  value: JSON.stringify(posture)",
+                  "});",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-access-context',",
+                  "  value: JSON.stringify(context)",
+                  "});",
+                  "",
+                  "console.log('🔴 High Risk scenario loaded');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.test('Status should be 403', () => {",
+                  "  pm.expect(pm.response.code).to.equal(403);",
+                  "});",
+                  "",
+                  "pm.test('Should request support contact', () => {",
+                  "  pm.expect(response.details.contactSupport).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test('Risk score should be ~0.85', () => {",
+                  "  const score = response.details.riskScore;",
+                  "  pm.expect(score).to.be.above(0.8);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/banking/dashboard",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "banking",
+                "dashboard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Outside Work Hours (Evening)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const posture = {",
+                  "  diskEncrypted: true,",
+                  "  antivirus: true,",
+                  "  isJailbroken: false",
+                  "};",
+                  "",
+                  "// Set time to 11:45 PM (outside work hours)",
+                  "const eveningTime = new Date();",
+                  "eveningTime.setHours(23, 45, 0);",
+                  "",
+                  "const context = {",
+                  "  impossibleTravel: false,",
+                  "  country: 'NG',",
+                  "  city: 'Lagos',",
+                  "  timezone: 'Africa/Lagos',",
+                  "  ipReputation: 90,",
+                  "  isVPN: false,",
+                  "  isTor: false,",
+                  "  accessTime: eveningTime.toISOString()",
+                  "};",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-device-posture',",
+                  "  value: JSON.stringify(posture)",
+                  "});",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-access-context',",
+                  "  value: JSON.stringify(context)",
+                  "});",
+                  "",
+                  "console.log('🌙 Outside work hours scenario loaded');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/banking/dashboard",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "banking",
+                "dashboard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Jailbroken Device",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const posture = {",
+                  "  diskEncrypted: true,",
+                  "  antivirus: true,",
+                  "  isJailbroken: true",
+                  "};",
+                  "",
+                  "const context = {",
+                  "  impossibleTravel: false,",
+                  "  country: 'NG',",
+                  "  city: 'Lagos',",
+                  "  timezone: 'Africa/Lagos',",
+                  "  ipReputation: 95,",
+                  "  isVPN: false,",
+                  "  isTor: false,",
+                  "  accessTime: new Date().toISOString()",
+                  "};",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-device-posture',",
+                  "  value: JSON.stringify(posture)",
+                  "});",
+                  "",
+                  "pm.request.headers.add({",
+                  "  key: 'x-access-context',",
+                  "  value: JSON.stringify(context)",
+                  "});",
+                  "",
+                  "console.log('📱 Jailbroken device scenario loaded');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/banking/dashboard",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "banking",
+                "dashboard"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
