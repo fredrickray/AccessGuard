@@ -10,7 +10,7 @@
     "baseUrl": ".",
     "outDir": "./dist",
     "rootDir": "./src",
-    "typeRoots": ["./@types", "./node_modules/@types"],
+    // "typeRoots": ["./@types", "./node_modules/@types"],
     "strict": true,
     "skipLibCheck": true,
     "experimentalDecorators": true,
