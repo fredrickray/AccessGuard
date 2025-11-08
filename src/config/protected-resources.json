@@ -9,7 +9,7 @@
     {
       "name": "Banking Operations",
       "prefix": "/api/banking",
-      "requiredRoles": ["hr", "banker"],
+      "requiredRoles": ["hr", "banker", "user", "admin"],
       "description": "Core banking operations"
     },
     {
