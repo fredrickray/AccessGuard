@@ -1,22 +1,72 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { roleGuard } from "@middlewares/accessGuard";
+import User from "@models/User";
 
 const adminRouter = Router();
 
 adminRouter.use(roleGuard(["admin"]));
 
-adminRouter.get("/dashboard", (req: Request, res: Response) => {
-  res.json({
-    message: "Admin Dashboard",
-    user: req.user,
-    stats: {
-      totalAccessAttempts: 1250,
-      blockedAttempts: 45,
-      mfaChallenges: 120,
-      allowedAccess: 1085,
-    },
-  });
-});
+adminRouter.get(
+  "/dashboard",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Fetch admin user from database
+      const adminUser = await User.findById(userId);
+
+      if (!adminUser) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+
+      // Fetch all non-admin users from database
+      const nonAdminUsers = await User.find({
+        roles: { $ne: "admin" },
+      }).select("-password");
+
+      res.json({
+        message: "Admin Dashboard",
+        admin: {
+          id: adminUser._id,
+          username: adminUser.username,
+          email: adminUser.email,
+          roles: adminUser.roles,
+        },
+        users: nonAdminUsers,
+        stats: {
+          totalUsers: nonAdminUsers.length,
+          compliantDevices: 980,
+          accessDenials: 75,
+          atRiskDevices: 15,
+          totalAccessAttempts: 1250,
+          blockedAttempts: 45,
+          mfaChallenges: 120,
+          allowedAccess: 1085,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+adminRouter.get(
+  "/users",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const users = await User.find({
+        roles: { $ne: "admin" },
+      }).select("-password");
+      res.json({ users });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 // View recent access logs
 adminRouter.get("/logs", (req: Request, res: Response) => {

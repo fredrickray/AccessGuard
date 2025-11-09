@@ -56,6 +56,10 @@ demoAppRouter.get("/banking/transactions", (req: Request, res: Response) => {
         status: "completed",
       },
     ],
+    totalTransactions: 150,
+    totalIncome: 2000000,
+    totalOutgoings: 1750000,
+    netFlow: 250000,
   });
 });
 

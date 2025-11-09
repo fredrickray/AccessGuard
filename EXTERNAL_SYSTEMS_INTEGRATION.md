@@ -3,6 +3,7 @@
 ## Current Design (Your Own Server)
 
 Your current implementation works for:
+
 - **Internal APIs** you control and manage
 - **Protected resources** defined in your backend
 - **Direct HTTP requests** to your own servers
@@ -21,12 +22,14 @@ User/App → Your Access Guard Backend → Protected Resource (Your Server)
 ## Problem with External Systems
 
 Slack, Microsoft Teams, Salesforce, etc., are **third-party SaaS platforms** with their own:
+
 - Authentication systems (OAuth, SSO)
 - Authorization models
 - API boundaries that you cannot modify
 - Servers you don't control
 
 **Direct Approach Won't Work:**
+
 ```
 User/App → Your Access Guard → Slack API?
                                 ❌ Slack doesn't know about your Access Guard
@@ -59,6 +62,7 @@ Your Access Guard Gateway (Proxy)
 ```
 
 **How it works:**
+
 1. User authenticates with your Access Guard
 2. User requests access to Slack/Teams/etc.
 3. Your gateway evaluates risk
@@ -66,17 +70,20 @@ Your Access Guard Gateway (Proxy)
 5. Response returned to user
 
 **Pros:**
+
 - ✅ Full control over access policies
 - ✅ Can enforce zero-trust for external systems
 - ✅ Centralized logging and audit trail
 - ✅ MFA can be enforced before external access
 
 **Cons:**
+
 - ❌ Extra latency (added proxy layer)
 - ❌ Must manage service account credentials
 - ❌ Rate limiting from external APIs applies to your service account
 
 **Example: Slack API Proxy**
+
 ```typescript
 // POST /api/proxy/slack/messages.list
 // Your gateway intercepts request
@@ -111,12 +118,14 @@ External System → Your Access Guard (Validate Token)
 ```
 
 **Pros:**
+
 - ✅ Better security isolation
 - ✅ Tokens can have limited scope/lifetime
 - ✅ User stays authenticated only during allowed access window
 - ✅ Better audit trail
 
 **Cons:**
+
 - ❌ Complex to implement
 - ❌ External systems must support OAuth
 
@@ -139,17 +148,20 @@ User → Slack/Teams/Salesforce
 ```
 
 Most enterprise SaaS supports:
+
 - SAML 2.0
 - OpenID Connect
 - Azure AD / Entra
 - Okta
 
 **Pros:**
+
 - ✅ Native integration with SaaS platforms
 - ✅ No proxy overhead
 - ✅ Standard protocol (portable)
 
 **Cons:**
+
 - ❌ Requires external systems to support it
 - ❌ Integrations vary by platform
 
@@ -174,6 +186,7 @@ Browser → External System (Slack, Teams, etc.)
 ```
 
 **Tools that support this:**
+
 - Cloudflare Zero Trust (device clients)
 - Microsoft Defender for Cloud
 - Okta Identity Platform
@@ -186,6 +199,7 @@ Browser → External System (Slack, Teams, etc.)
 ### Option A: Proxy Gateway (Recommended for Small Teams)
 
 **Architecture:**
+
 ```
 ┌─────────────────────────────────────────┐
 │         Your Organization               │
@@ -212,13 +226,15 @@ Browser → External System (Slack, Teams, etc.)
 **Implementation Steps:**
 
 1. **Create Proxy Routes:**
+
 ```typescript
 // src/routes/proxy.route.ts
-router.get('/proxy/slack/:action', zeroTrustGuard, proxyController.slack);
-router.get('/proxy/teams/:action', zeroTrustGuard, proxyController.teams);
+router.get("/proxy/slack/:action", zeroTrustGuard, proxyController.slack);
+router.get("/proxy/teams/:action", zeroTrustGuard, proxyController.teams);
 ```
 
 2. **Store Service Credentials:**
+
 ```typescript
 // Encrypt and store in database
 services: {
@@ -234,22 +250,23 @@ services: {
 ```
 
 3. **Proxy Handler:**
+
 ```typescript
 async proxySlack(req: Request, res: Response) {
   // 1. User already passed zero-trust guard
   // 2. Get service account token
   // 3. Forward request to Slack API
   // 4. Return response
-  
+
   const user = req.user!;
   const slackToken = await getEncryptedToken('slack');
-  
+
   const response = await slackApi.call(
     req.query.action,
     req.body,
     slackToken
   );
-  
+
   res.json(response);
 }
 ```
@@ -301,6 +318,7 @@ Allowed to connect to Slack
 Your risk engine **CAN** work with external systems:
 
 ### Factors That Still Apply:
+
 - ✅ Device posture (encryption, antivirus, jailbreak)
 - ✅ User authentication (JWT/token validity)
 - ✅ Location & network (IP, VPN, country)
@@ -309,11 +327,13 @@ Your risk engine **CAN** work with external systems:
 - ✅ MFA enforcement
 
 ### Factors That VARY:
+
 - Role-based access (external systems use their own roles)
 - Device trust (some external systems have own device checks)
 - Session management (they manage their own sessions)
 
 **Example:**
+
 ```
 User tries to access Slack
     ↓
@@ -336,6 +356,7 @@ Slack grants access to user
 ## Real-World Example: Slack Integration
 
 ### Current Setup (Your Backend)
+
 ```
 GET /api/banking/dashboard
   ↓ [Access Guard: Verify JWT, check risk, verify role]
@@ -345,6 +366,7 @@ GET /api/banking/dashboard
 ```
 
 ### With Slack Integration
+
 ```
 GET /api/proxy/slack/conversations.list
   ↓ [Access Guard: Verify JWT, check risk, verify role]
@@ -358,23 +380,25 @@ GET /api/proxy/slack/conversations.list
 
 ## Comparison Table
 
-| Approach | Control | Complexity | Latency | Best For |
-|----------|---------|-----------|---------|----------|
-| **Proxy Gateway** | ⭐⭐⭐⭐ High | Medium | Low+ | Medium teams, full control needed |
-| **OAuth Provider** | ⭐⭐⭐ Medium | High | Low | Large orgs, many external systems |
-| **SSO/SAML** | ⭐⭐⭐ Medium | Medium | Very Low | Enterprise, native SaaS support |
-| **Device Agent** | ⭐⭐⭐⭐ High | High | None | Compliance-heavy orgs |
-| **Hybrid** | ⭐⭐⭐⭐⭐ Maximum | Complex | Variable | Large enterprises |
+| Approach           | Control            | Complexity | Latency  | Best For                          |
+| ------------------ | ------------------ | ---------- | -------- | --------------------------------- |
+| **Proxy Gateway**  | ⭐⭐⭐⭐ High      | Medium     | Low+     | Medium teams, full control needed |
+| **OAuth Provider** | ⭐⭐⭐ Medium      | High       | Low      | Large orgs, many external systems |
+| **SSO/SAML**       | ⭐⭐⭐ Medium      | Medium     | Very Low | Enterprise, native SaaS support   |
+| **Device Agent**   | ⭐⭐⭐⭐ High      | High       | None     | Compliance-heavy orgs             |
+| **Hybrid**         | ⭐⭐⭐⭐⭐ Maximum | Complex    | Variable | Large enterprises                 |
 
 ---
 
 ## Recommendation for Your Access Guard
 
 ### Short Term (Current)
+
 ✅ Keep your current design for internal APIs
 ✅ Document how it works for internal systems only
 
 ### Medium Term (Add External Support)
+
 1. Add proxy routes for popular SaaS (Slack, Teams, etc.)
 2. Create service account credential manager
 3. Extend zero-trust guard to proxy endpoints
@@ -392,6 +416,7 @@ GET /api/proxy/slack/conversations.list
 ```
 
 ### Long Term (Enterprise)
+
 Implement OAuth 2.0 provider for better scalability
 
 ---
@@ -399,6 +424,7 @@ Implement OAuth 2.0 provider for better scalability
 ## Decision: Will This Work for External Systems?
 
 **Direct Answer:**
+
 - ❌ **Not directly** - External systems don't know about your Access Guard
 - ✅ **With proxy layer** - Yes, by proxying requests through your backend
 - ✅ **With SSO** - Yes, if external systems support SAML/OIDC
@@ -417,6 +443,7 @@ Your zero-trust model is **agnostic to whether the resource is internal or exter
 5. **Audit external access**: Log all proxy requests
 
 Would you like me to:
+
 1. Create a proxy implementation for a specific service (Slack, Teams, etc.)?
 2. Build the credential manager for storing service account tokens?
 3. Add external system support to your protected resources?

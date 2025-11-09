@@ -1,10 +1,13 @@
 # Risk Engine Testing - One-Page Reference
 
 ## The Problem
+
 Risk data (device posture & access context) wasn't being sent to the API, so risk scoring was always 0.
 
 ## The Solution
+
 Send risk data via custom HTTP headers:
+
 - `x-device-posture`: Device security info
 - `x-access-context`: Access environment info
 
@@ -13,11 +16,13 @@ Send risk data via custom HTTP headers:
 ## Quick Test Commands
 
 ### cURL - All 5 Scenarios
+
 ```bash
 bash test-risk-scenarios.sh
 ```
 
 ### cURL - Single Low Risk Test
+
 ```bash
 curl -X GET http://localhost:3000/api/banking/dashboard \
   -H "Authorization: Bearer $TOKEN" \
@@ -26,24 +31,26 @@ curl -X GET http://localhost:3000/api/banking/dashboard \
 ```
 
 ### Postman - Import Collection
+
 File → Import → Select `Access-Guard-Risk-Testing.postman_collection.json`
 
 ---
 
 ## Risk Factors & Scores
 
-| Factor | Weight | Impact |
-|--------|--------|--------|
-| Disk not encrypted | 0.2 | Device security |
-| No antivirus | 0.2 | Device security |
-| Jailbroken device | 0.3 | Device security |
-| Impossible travel | 0.4 | Behavior anomaly |
-| Untrusted country | 0.15 | Geographic |
-| VPN/Tor | 0.25 | Network |
-| Low IP reputation | 0.2 | IP quality |
-| Outside work hours | 0.1 | Time-based |
+| Factor             | Weight | Impact           |
+| ------------------ | ------ | ---------------- |
+| Disk not encrypted | 0.2    | Device security  |
+| No antivirus       | 0.2    | Device security  |
+| Jailbroken device  | 0.3    | Device security  |
+| Impossible travel  | 0.4    | Behavior anomaly |
+| Untrusted country  | 0.15   | Geographic       |
+| VPN/Tor            | 0.25   | Network          |
+| Low IP reputation  | 0.2    | IP quality       |
+| Outside work hours | 0.1    | Time-based       |
 
 **Thresholds**:
+
 - Score < 0.3 → ✅ **Allow** (200)
 - Score 0.3-0.6 → 🔐 **MFA** (401)
 - Score ≥ 0.8 → ❌ **Block** (403)
@@ -53,26 +60,31 @@ File → Import → Select `Access-Guard-Risk-Testing.postman_collection.json`
 ## Test Scenarios (Expected Scores)
 
 ### Low Risk (0.0)
+
 - Device: Encrypted ✅, AV ✅, Not jailbroken ✅
 - Context: NG, High IP Rep, No VPN
 - Response: HTTP 200, riskScore 0.0
 
 ### Medium Risk (0.45)
+
 - Device: No encryption ❌, No AV ❌
 - Context: CN, Medium IP Rep, VPN ⚠️
 - Response: HTTP 401, mfaRequired: true
 
 ### High Risk (0.85)
+
 - Device: Jailbroken ❌
 - Context: Impossible travel ❌, Tor ❌, Low IP Rep ❌
 - Response: HTTP 403, contactSupport: true
 
 ### Jailbroken (0.3)
+
 - Device: Jailbroken only ❌
 - Context: Good (NG, High IP Rep, No VPN)
 - Response: HTTP 200, riskScore 0.3
 
 ### Outside Hours (0.1)
+
 - Device: Secure ✅
 - Context: Evening (23:45) ⚠️
 - Response: HTTP 200, riskScore 0.1
@@ -99,6 +111,7 @@ Risk evaluation result
 ## Response Examples
 
 ### ✅ Allow (200)
+
 ```json
 {
   "user": "ajebodev",
@@ -109,6 +122,7 @@ Risk evaluation result
 ```
 
 ### 🔐 MFA (401)
+
 ```json
 {
   "message": "Unauthorized",
@@ -121,6 +135,7 @@ Risk evaluation result
 ```
 
 ### ❌ Block (403)
+
 ```json
 {
   "message": "Access Denied",
@@ -137,26 +152,28 @@ Risk evaluation result
 ## Debugging
 
 **Seeing empty posture/context?**
+
 - ❌ Check header names (case-sensitive, lowercase)
 - ❌ Validate JSON format (no spaces around colons)
 - ❌ Check Authorization header has valid token
 - ❌ Check Postman isn't overriding at collection level
 
 **Postman pre-request script to autoload headers?**
+
 ```javascript
 const scenario = {
   posture: { diskEncrypted: false, antivirus: false, isJailbroken: true },
-  context: { country: "US", ipReputation: 30, isVPN: true }
+  context: { country: "US", ipReputation: 30, isVPN: true },
 };
 
 pm.request.headers.add({
-  key: 'x-device-posture',
-  value: JSON.stringify(scenario.posture)
+  key: "x-device-posture",
+  value: JSON.stringify(scenario.posture),
 });
 
 pm.request.headers.add({
-  key: 'x-access-context',
-  value: JSON.stringify(scenario.context)
+  key: "x-access-context",
+  value: JSON.stringify(scenario.context),
 });
 ```
 
@@ -164,13 +181,13 @@ pm.request.headers.add({
 
 ## Files Available
 
-| File | Purpose |
-|------|---------|
-| `test-risk-scenarios.sh` | Run 5 scenarios with cURL |
-| `POSTMAN_PRE_REQUEST_SCRIPT.js` | Copy to Postman pre-request tab |
-| `Access-Guard-Risk-Testing.postman_collection.json` | Import into Postman |
-| `RISK_ENGINE_TESTING.md` | Full documentation |
-| `RISK_TESTING_QUICK_START.md` | Quick start guide |
+| File                                                | Purpose                         |
+| --------------------------------------------------- | ------------------------------- |
+| `test-risk-scenarios.sh`                            | Run 5 scenarios with cURL       |
+| `POSTMAN_PRE_REQUEST_SCRIPT.js`                     | Copy to Postman pre-request tab |
+| `Access-Guard-Risk-Testing.postman_collection.json` | Import into Postman             |
+| `RISK_ENGINE_TESTING.md`                            | Full documentation              |
+| `RISK_TESTING_QUICK_START.md`                       | Quick start guide               |
 
 ---
 

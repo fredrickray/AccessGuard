@@ -3,6 +3,7 @@
 ## What Was the Problem?
 
 When you tested the API, the `devicePosture` and `accessContext` were empty objects in the logs:
+
 ```
 Parsed posture: {}
 Parsed context: { accessTime: '...' }  // Only accessTime
@@ -26,13 +27,15 @@ The middleware automatically parses these headers and feeds them to the risk eng
 ## Quick Start - 3 Ways to Test
 
 ### 🚀 Option 1: Import Postman Collection (Easiest)
+
 1. Download: `Access-Guard-Risk-Testing.postman_collection.json`
 2. In Postman: **File → Import** → Select the file
 3. Click **Login** to get a token
 4. Run any risk test request (Low Risk, Medium Risk, etc.)
 5. Check the response and server logs
 
-**Benefits**: 
+**Benefits**:
+
 - Pre-configured requests
 - Automatic header injection
 - Built-in test assertions
@@ -41,6 +44,7 @@ The middleware automatically parses these headers and feeds them to the risk eng
 ---
 
 ### 💻 Option 2: cURL Script (Fastest for CLI)
+
 ```bash
 cd /Users/fredrickanyanwu/Documents/access-guard
 bash test-risk-scenarios.sh
@@ -51,6 +55,7 @@ This will run 5 different risk scenarios automatically and show you the results.
 ---
 
 ### 📝 Option 3: Manual Postman Request
+
 1. Create a new GET request to `/api/banking/dashboard`
 2. Go to **Headers** tab
 3. Add these two headers:
@@ -65,7 +70,9 @@ This will run 5 different risk scenarios automatically and show you the results.
 ## Key Changes Made
 
 ### 1. Enhanced Logging in `accessGuard.ts`
+
 Now logs parsed risk data and risk evaluation results:
+
 ```json
 {
   "devicePosture": {"diskEncrypted": false, "antivirus": false},
@@ -80,9 +87,11 @@ Now logs parsed risk data and risk evaluation results:
 ```
 
 ### 2. Cleaned Up Logs
+
 Removed debug `console.log()` statements from `policy.service.ts`
 
 ### 3. Documentation Created
+
 - ✅ `RISK_ENGINE_TESTING.md` - Comprehensive guide with all scenarios
 - ✅ `RISK_TESTING_QUICK_START.md` - Quick reference
 - ✅ `POSTMAN_PRE_REQUEST_SCRIPT.js` - Ready-to-use script
@@ -93,24 +102,26 @@ Removed debug `console.log()` statements from `policy.service.ts`
 
 ## Test Scenarios Included
 
-| Scenario | Expected Score | HTTP Status | Use Case |
-|----------|---|---|---|
-| Low Risk | 0.0 | ✅ 200 | Secure device, trusted location |
-| Medium Risk | 0.45 | 🔐 401 | Missing security, VPN detected |
-| High Risk | 0.85 | ❌ 403 | Multiple red flags, block access |
-| Outside Hours | 0.1 | ✅ 200 | Evening access on secure device |
-| Jailbroken | 0.3 | ✅ 200 | Only device issue, context is good |
+| Scenario      | Expected Score | HTTP Status | Use Case                           |
+| ------------- | -------------- | ----------- | ---------------------------------- |
+| Low Risk      | 0.0            | ✅ 200      | Secure device, trusted location    |
+| Medium Risk   | 0.45           | 🔐 401      | Missing security, VPN detected     |
+| High Risk     | 0.85           | ❌ 403      | Multiple red flags, block access   |
+| Outside Hours | 0.1            | ✅ 200      | Evening access on secure device    |
+| Jailbroken    | 0.3            | ✅ 200      | Only device issue, context is good |
 
 ---
 
 ## What Risk Factors Are Being Evaluated?
 
 ### Device Posture (40% weight)
+
 - `diskEncrypted`: Is the device's disk encrypted?
 - `antivirus`: Is antivirus software installed?
 - `isJailbroken`: Is the device rooted/jailbroken?
 
 ### Access Context (60% weight)
+
 - `impossibleTravel`: Suspicious travel patterns
 - `country`: Country of access (trusted list: NG, US, GB, CA, AU)
 - `ipReputation`: IP reputation score (0-100)
@@ -123,6 +134,7 @@ Removed debug `console.log()` statements from `policy.service.ts`
 ## Expected Responses
 
 ### ✅ Allow (HTTP 200)
+
 ```json
 {
   "user": "ajebodev",
@@ -133,6 +145,7 @@ Removed debug `console.log()` statements from `policy.service.ts`
 ```
 
 ### 🔐 MFA Required (HTTP 401)
+
 ```json
 {
   "message": "Unauthorized",
@@ -145,6 +158,7 @@ Removed debug `console.log()` statements from `policy.service.ts`
 ```
 
 ### ❌ Block (HTTP 403)
+
 ```json
 {
   "message": "Access Denied",
@@ -181,6 +195,7 @@ When you send a request with risk data, monitor these logs:
 ```
 
 If you see **empty objects**, the headers aren't being received:
+
 1. Check header names (lowercase with hyphens)
 2. Verify JSON is valid (no trailing commas, proper quotes)
 3. Make sure Postman isn't overriding at collection level
@@ -224,16 +239,19 @@ If you see **empty objects**, the headers aren't being received:
 ## Support
 
 **Issue**: Headers not being parsed
+
 - ✅ Check header names are exactly `x-device-posture` and `x-access-context`
 - ✅ Check JSON is valid: `{"key":"value","key2":"value2"}`
 - ✅ Check Authorization header has valid JWT token
 
 **Issue**: Always getting riskScore 0
+
 - ✅ Are you sending the custom headers?
 - ✅ Check server logs for "Parsed risk data from headers"
 - ✅ Verify headers aren't empty objects in the logs
 
 **Issue**: Want to adjust risk thresholds
+
 - ✅ Edit `src/config/settings.json` to change `allow`, `mfa`, `block` values
 - ✅ Restart the server for changes to take effect
 

@@ -42,14 +42,9 @@
             "url": {
               "raw": "http://localhost:3000/auth/login",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "3000",
-              "path": [
-                "auth",
-                "login"
-              ]
+              "path": ["auth", "login"]
             }
           }
         }
@@ -128,15 +123,9 @@
             "url": {
               "raw": "http://localhost:3000/api/banking/dashboard",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "3000",
-              "path": [
-                "api",
-                "banking",
-                "dashboard"
-              ]
+              "path": ["api", "banking", "dashboard"]
             }
           }
         },
@@ -211,15 +200,9 @@
             "url": {
               "raw": "http://localhost:3000/api/banking/dashboard",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "3000",
-              "path": [
-                "api",
-                "banking",
-                "dashboard"
-              ]
+              "path": ["api", "banking", "dashboard"]
             }
           }
         },
@@ -294,15 +277,9 @@
             "url": {
               "raw": "http://localhost:3000/api/banking/dashboard",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "3000",
-              "path": [
-                "api",
-                "banking",
-                "dashboard"
-              ]
+              "path": ["api", "banking", "dashboard"]
             }
           }
         },
@@ -361,15 +338,9 @@
             "url": {
               "raw": "http://localhost:3000/api/banking/dashboard",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "3000",
-              "path": [
-                "api",
-                "banking",
-                "dashboard"
-              ]
+              "path": ["api", "banking", "dashboard"]
             }
           }
         },
@@ -424,15 +395,9 @@
             "url": {
               "raw": "http://localhost:3000/api/banking/dashboard",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "3000",
-              "path": [
-                "api",
-                "banking",
-                "dashboard"
-              ]
+              "path": ["api", "banking", "dashboard"]
             }
           }
         }
