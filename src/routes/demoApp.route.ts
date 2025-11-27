@@ -40,6 +40,8 @@ demoAppRouter.get("/banking/transactions", (req: Request, res: Response) => {
         to: "ACC-002",
         amount: 50000,
         status: "completed",
+        type: "transfer",
+        time: "10-09-2025",
       },
       {
         id: 2,
@@ -47,6 +49,8 @@ demoAppRouter.get("/banking/transactions", (req: Request, res: Response) => {
         to: "ACC-001",
         amount: 125000,
         status: "pending",
+        type: "transfer",
+        time: "10-04-2025",
       },
       {
         id: 3,
@@ -54,6 +58,8 @@ demoAppRouter.get("/banking/transactions", (req: Request, res: Response) => {
         to: "ACC-004",
         amount: 75000,
         status: "completed",
+        type: "transfer",
+        time: "10-02-2025",
       },
     ],
     totalTransactions: 150,
